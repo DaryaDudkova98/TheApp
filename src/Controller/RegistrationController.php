@@ -52,7 +52,7 @@ class RegistrationController extends AbstractController
 
             $link = $this->generateUrl('app_confirm_email', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
             $email = (new Email())
-                ->from('dukovadaryadmitrievna@man.com')
+                ->from('dudkovadaryadmitrievna@gmail.com')
                 ->to($user->getEmail())
                 ->subject('Welcome to The App!')
                 ->html("
