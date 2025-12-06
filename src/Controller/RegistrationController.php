@@ -37,6 +37,7 @@ class RegistrationController extends AbstractController
 
             $hashedPassword = $passwordHasher->hashPassword($user, $passwordInput);
             $user->setPassword($hashedPassword);
+            $user->setRoles(['ROLE_USER']);
             $user->setFirstName($request->request->get('first_name'));
             $user->setLastName($request->request->get('last_name'));
             $user->setStatus('unverified');
