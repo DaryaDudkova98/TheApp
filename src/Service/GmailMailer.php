@@ -18,13 +18,40 @@ class GmailMailer
         $client->setAuthConfig(__DIR__ . '/../../credentials.json');
         $client->setAccessType('offline');
 
-        if (file_exists('token.json')) {
-            $client->setAccessToken(json_decode(file_get_contents('token.json'), true));
+
+        $tokenBase64 = $_ENV['GMAIL_TOKEN_BASE64'] ?? null;
+
+        if (!$tokenBase64) {
+            throw new \RuntimeException("GMAIL_TOKEN_BASE64 is missing");
         }
 
-        if ($client->isAccessTokenExpired() && $client->getRefreshToken()) {
-            $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
-            file_put_contents('token.json', json_encode($client->getAccessToken()));
+        $decoded = base64_decode($tokenBase64, true);
+
+        if (!$decoded) {
+            throw new \RuntimeException("Base64 decode failed");
+        }
+
+
+        $token = json_decode($decoded, true);
+
+        if (!$token || !is_array($token)) {
+            throw new \RuntimeException("Decoded token is not valid JSON");
+        }
+
+
+        if (!isset($token['access_token'])) {
+            throw new \RuntimeException("Token JSON does not contain access_token");
+        }
+
+        $client->setAccessToken($token);
+
+        if ($client->isAccessTokenExpired()) {
+            if ($client->getRefreshToken()) {
+
+                $newToken = $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+            } else {
+                throw new \RuntimeException("Access token expired and no refresh_token available");
+            }
         }
 
         $this->gmail = new Gmail($client);
