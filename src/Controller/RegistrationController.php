@@ -7,13 +7,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Entity\User;
-use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use App\Service\GmailMailer;
 
 class RegistrationController extends AbstractController
 {
@@ -22,14 +20,15 @@ class RegistrationController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         UserPasswordHasherInterface $passwordHasher,
-        MailerInterface $mailer
+        GmailMailer $gmailMailer
     ): Response {
         if ($request->isMethod('POST')) {
+
             $emailInput = $request->request->get('email');
             $passwordInput = $request->request->get('password');
 
             if (!$emailInput || !$passwordInput) {
-                return new Response('Email и пароль обязательны', 400);
+                return new Response('Email and password is required', 400);
             }
 
             $user = new User();
@@ -41,6 +40,7 @@ class RegistrationController extends AbstractController
             $user->setFirstName($request->request->get('first_name'));
             $user->setLastName($request->request->get('last_name'));
             $user->setStatus('unverified');
+
             $token = Uuid::v4()->toRfc4122();
             $user->setConfirmationToken($token);
 
@@ -51,18 +51,23 @@ class RegistrationController extends AbstractController
                 return new Response('Error saving user: ' . $e->getMessage(), 500);
             }
 
-            $link = $this->generateUrl('app_confirm_email', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
-            $email = (new Email())
-                ->from('dudkovadaryadmitrievna@gmail.com')
-                ->to($user->getEmail())
-                ->subject('Welcome to The App!')
-                ->html("
+            $link = $this->generateUrl(
+                'app_confirm_email',
+                ['token' => $token],
+                UrlGeneratorInterface::ABSOLUTE_URL
+            );
+
+            $html = "
                 <p>Hello, {$user->getFirstName()}!</p>
                 <p>Thanks for registering. To activate your account, follow the link:</p>
                 <p><a href='$link' style='color:#0d6efd;font-weight:bold;'>Verify account</a></p>
-            ");
+            ";
 
-            $mailer->send($email);
+            $gmailMailer->send(
+                $user->getEmail(),
+                'Welcome to The App!',
+                $html
+            );
 
             return $this->redirectToRoute('app_login');
         }
