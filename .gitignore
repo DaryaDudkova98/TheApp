@@ -8,4 +8,5 @@
 /var/
 /vendor/
 token.json
+credentials.json
 ###< symfony/framework-bundle ###
