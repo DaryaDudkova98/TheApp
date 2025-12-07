@@ -15,7 +15,7 @@ class GmailMailer
         $client = new Client();
         $client->setApplicationName('The App');
         $client->setScopes([Gmail::GMAIL_SEND]);
-        $client->setAuthConfig('credentials.json');
+        $client->setAuthConfig(__DIR__ . '/../../credentials.json');
         $client->setAccessType('offline');
 
         if (file_exists('token.json')) {
