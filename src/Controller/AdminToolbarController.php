@@ -24,6 +24,34 @@ class AdminToolbarController extends AbstractController
 
         $selectedIds = array_map('intval', $selectedIds);
 
+        /** @var \App\Entity\User $currentUser */
+        $currentUser = $this->getUser();
+        $isSelfAction = $currentUser instanceof User && in_array($currentUser->getId(), $selectedIds);
+
+        if ($isSelfAction && in_array($action, ['remove', 'delete', 'block'])) {
+
+            $this->container->get('security.token_storage')->setToken(null);
+            $request->getSession()->invalidate();
+
+            if ($action === 'block') {
+                $this->addFlash('error', 'You have been blocked.');
+            } elseif ($action === 'delete') {
+                $this->addFlash('error', 'Your account has been deleted.');
+            } elseif ($action === 'remove') {
+                $this->addFlash('error', 'Your account has been removed.');
+            }
+
+            if ($action === 'remove') {
+                $userToRemove = $em->getRepository(User::class)->find($currentUser->getId());
+                if ($userToRemove) {
+                    $em->remove($userToRemove);
+                    $em->flush();
+                }
+            }
+
+            return $this->redirectToRoute('app_login');
+        }
+
         $users = $em->getRepository(User::class)->findBy(['id' => $selectedIds]);
 
         foreach ($users as $user) {
@@ -48,36 +76,6 @@ class AdminToolbarController extends AbstractController
 
         $em->flush();
 
-        $currentUser = $this->getUser();
-
-        $selectedIds = array_map('intval', $selectedIds);
-
-        if ($currentUser instanceof User && in_array($currentUser->getId(), $selectedIds)) {
-
-            $this->container->get('security.token_storage')->setToken(null);
-            $request->getSession()->invalidate();
-
-            switch ($action) {
-                case 'block':
-                    $this->addFlash('error', 'You have been blocked.');
-                    break;
-
-                case 'delete':
-                    $this->addFlash('error', 'Your account has been deleted.');
-                    break;
-
-                case 'remove':
-                    $this->addFlash('error', 'Your account has been removed.');
-                    break;
-
-                case 'unblock':
-                    $this->addFlash('success', 'Your account has been reactivated.');
-                    return $this->redirectToRoute('app_login');
-            }
-
-            return $this->redirectToRoute('app_login');
-        }
-
         $this->addFlash('success', 'Action applied to selected users.');
         return $this->redirectToRoute('admin_users');
     }
@@ -92,4 +90,5 @@ class AdminToolbarController extends AbstractController
         ]);
     }
 }
+
 
