@@ -8,16 +8,14 @@ use Google\Service\Gmail\Message;
 
 class GmailMailer
 {
-    private Gmail $gmail;
-
-    public function __construct()
+    public function send(string $to, string $subject, string $html): void
     {
+
         $client = new Client();
         $client->setApplicationName('The App');
         $client->setScopes([Gmail::GMAIL_SEND]);
         $client->setAuthConfig(__DIR__ . '/../../credentials.json');
         $client->setAccessType('offline');
-
 
         $tokenBase64 = $_ENV['GMAIL_TOKEN_BASE64'] ?? null;
 
@@ -31,13 +29,11 @@ class GmailMailer
             throw new \RuntimeException("Base64 decode failed");
         }
 
-
         $token = json_decode($decoded, true);
 
         if (!$token || !is_array($token)) {
             throw new \RuntimeException("Decoded token is not valid JSON");
         }
-
 
         if (!isset($token['access_token'])) {
             throw new \RuntimeException("Token JSON does not contain access_token");
@@ -47,18 +43,14 @@ class GmailMailer
 
         if ($client->isAccessTokenExpired()) {
             if ($client->getRefreshToken()) {
-
-                $newToken = $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+                $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
             } else {
                 throw new \RuntimeException("Access token expired and no refresh_token available");
             }
         }
 
-        $this->gmail = new Gmail($client);
-    }
+        $gmail = new Gmail($client);
 
-    public function send(string $to, string $subject, string $html): void
-    {
         $raw = "To: $to\r\n";
         $raw .= "Subject: $subject\r\n";
         $raw .= "MIME-Version: 1.0\r\n";
@@ -68,6 +60,7 @@ class GmailMailer
         $message = new Message();
         $message->setRaw(rtrim(strtr(base64_encode($raw), '+/', '-_'), '='));
 
-        $this->gmail->users_messages->send('me', $message);
+        $gmail->users_messages->send('me', $message);
     }
 }
+
