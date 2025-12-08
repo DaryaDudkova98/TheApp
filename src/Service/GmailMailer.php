@@ -10,7 +10,6 @@ class GmailMailer
 {
     public function send(string $to, string $subject, string $html): void
     {
-
         $client = new Client();
         $client->setApplicationName('The App');
         $client->setScopes([Gmail::GMAIL_SEND]);
@@ -19,21 +18,8 @@ class GmailMailer
 
         $token = json_decode(file_get_contents('/etc/secrets/gmail_token.json'), true);
 
-
-        if (!$token) {
-            throw new \RuntimeException("GMAIL_TOKEN_BASE64 is missing");
-        }
-
-        $decoded = base64_decode($token, true);
-
-        if (!$decoded) {
-            throw new \RuntimeException("Base64 decode failed");
-        }
-
-        $token = json_decode($decoded, true);
-
         if (!$token || !is_array($token)) {
-            throw new \RuntimeException("Decoded token is not valid JSON");
+            throw new \RuntimeException("Token JSON is missing or invalid");
         }
 
         if (!isset($token['access_token'])) {
@@ -64,4 +50,3 @@ class GmailMailer
         $gmail->users_messages->send('me', $message);
     }
 }
-
