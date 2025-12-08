@@ -7,6 +7,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\Request;
+
 
 class AdminDashboardController extends AbstractController
 {
@@ -21,12 +23,24 @@ class AdminDashboardController extends AbstractController
     }
 
     #[Route('/dashboard', name: 'app_dashboard')]
-    public function dashboard(EntityManagerInterface $em): Response
+    public function dashboard(Request $request, EntityManagerInterface $em): Response
     {
         $user = $this->getUser();
 
         if (!$user instanceof \App\Entity\User) {
             $this->addFlash('error', 'You must log in.');
+            return $this->redirectToRoute('app_login');
+        }
+
+        $dbUser = $em->getRepository(\App\Entity\User::class)->find($user->getId());
+
+        if (!$dbUser) {
+
+            $this->container->get('security.token_storage')->setToken(null);
+            $request->getSession()->invalidate();
+
+
+            $this->addFlash('error', 'Your account has been removed.');
             return $this->redirectToRoute('app_login');
         }
 
