@@ -22,7 +22,6 @@ class AdminToolbarController extends AbstractController
             return $this->redirectToRoute('admin_users');
         }
 
-
         $users = $em->getRepository(User::class)->findBy(['id' => $selectedIds]);
 
         foreach ($users as $user) {
@@ -45,21 +44,28 @@ class AdminToolbarController extends AbstractController
         $em->flush();
 
         $currentUser = $this->getUser();
+
         if ($currentUser instanceof User && in_array((string)$currentUser->getId(), $selectedIds, true)) {
+
+            $this->container->get('security.token_storage')->setToken(null);
+            $request->getSession()->invalidate();
+
             switch ($action) {
                 case 'block':
                     $this->addFlash('error', 'You have been blocked.');
-                    return $this->redirectToRoute('app_login');
+                    break;
                 case 'delete':
                     $this->addFlash('error', 'Your account has been deleted.');
-                    return $this->redirectToRoute('app_login');
+                    break;
                 case 'remove':
                     $this->addFlash('error', 'Your account has been removed.');
-                    return $this->redirectToRoute('app_login');
+                    break;
                 case 'unblock':
                     $this->addFlash('success', 'Your account has been reactivated.');
-                    break;
+                    return $this->redirectToRoute('admin_users');
             }
+
+            return $this->redirectToRoute('app_login');
         }
 
         $this->addFlash('success', 'Action applied to selected users.');
