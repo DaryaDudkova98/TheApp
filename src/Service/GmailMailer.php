@@ -17,13 +17,14 @@ class GmailMailer
         $client->setAuthConfig(__DIR__ . '/../../credentials.json');
         $client->setAccessType('offline');
 
-        $tokenBase64 = dd(getenv('GMAIL_TOKEN_BASE64') ?: 'getenv not found');
+        $token = json_decode(file_get_contents('/etc/secrets/gmail_token.json'), true);
 
-        if (!$tokenBase64) {
+
+        if (!$token) {
             throw new \RuntimeException("GMAIL_TOKEN_BASE64 is missing");
         }
 
-        $decoded = base64_decode($tokenBase64, true);
+        $decoded = base64_decode($token, true);
 
         if (!$decoded) {
             throw new \RuntimeException("Base64 decode failed");
