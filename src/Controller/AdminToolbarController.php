@@ -19,7 +19,7 @@ class AdminToolbarController extends AbstractController
 
         if (!$selectedIds || !$action) {
             $this->addFlash('warning', 'No users selected or no action specified.');
-            return $this->redirectToRoute('admin_users');
+            return $this->redirectToRoute('app_login');
         }
 
         $users = $em->getRepository(User::class)->findBy(['id' => $selectedIds]);
@@ -62,7 +62,7 @@ class AdminToolbarController extends AbstractController
                     break;
                 case 'unblock':
                     $this->addFlash('success', 'Your account has been reactivated.');
-                    return $this->redirectToRoute('admin_users');
+                    return $this->redirectToRoute('app_login');
             }
 
             return $this->redirectToRoute('app_login');
