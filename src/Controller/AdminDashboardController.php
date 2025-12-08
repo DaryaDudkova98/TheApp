@@ -39,12 +39,11 @@ class AdminDashboardController extends AbstractController
             $this->container->get('security.token_storage')->setToken(null);
             $request->getSession()->invalidate();
 
-
             $this->addFlash('error', 'Your account has been removed.');
             return $this->redirectToRoute('app_login');
         }
 
-        $statusValue =  $user->getStatus();
+        $statusValue = $dbUser->getStatus();
 
         if ($statusValue !== 'active') {
             if ($statusValue === 'unverified') {
@@ -58,11 +57,11 @@ class AdminDashboardController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        $user->setLastSeen(new \DateTime());
+        $dbUser->setLastSeen(new \DateTime());
         $em->flush();
 
         return $this->render('dashboard.html.twig', [
-            'user' => $user,
+            'user' => $dbUser,
         ]);
     }
 }
