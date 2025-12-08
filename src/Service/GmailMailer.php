@@ -16,7 +16,9 @@ class GmailMailer
         $client->setAuthConfig(__DIR__ . '/../../credentials.json');
         $client->setAccessType('offline');
 
+
         $token = json_decode(file_get_contents('/etc/secrets/gmail_token.json'), true);
+
 
         if (!$token || !is_array($token)) {
             throw new \RuntimeException("Token JSON is missing or invalid");
