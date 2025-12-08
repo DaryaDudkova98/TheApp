@@ -50,7 +50,7 @@ class AdminToolbarController extends AbstractController
 
         $currentUser = $this->getUser();
 
-        if ($currentUser instanceof User && in_array($currentUser->getId(), $selectedIds, true)) {
+        if ($currentUser instanceof User && in_array((string)$currentUser->getId(), $selectedIds)) {
 
             $this->container->get('security.token_storage')->setToken(null);
             $request->getSession()->invalidate();
