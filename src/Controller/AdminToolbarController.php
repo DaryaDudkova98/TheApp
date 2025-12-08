@@ -19,8 +19,10 @@ class AdminToolbarController extends AbstractController
 
         if (!$selectedIds || !$action) {
             $this->addFlash('warning', 'No users selected or no action specified.');
-            return $this->redirectToRoute('app_login');
+            return $this->redirectToRoute('admin_users');
         }
+
+        $selectedIds = array_map('intval', $selectedIds);
 
         $users = $em->getRepository(User::class)->findBy(['id' => $selectedIds]);
 
@@ -29,12 +31,15 @@ class AdminToolbarController extends AbstractController
                 case 'block':
                     $user->setStatus('blocked');
                     break;
+
                 case 'unblock':
                     $user->setStatus('active');
                     break;
+
                 case 'delete':
                     $user->setStatus('deleted');
                     break;
+
                 case 'remove':
                     $em->remove($user);
                     break;
@@ -45,7 +50,7 @@ class AdminToolbarController extends AbstractController
 
         $currentUser = $this->getUser();
 
-        if ($currentUser instanceof User && in_array((string)$currentUser->getId(), $selectedIds, true)) {
+        if ($currentUser instanceof User && in_array($currentUser->getId(), $selectedIds, true)) {
 
             $this->container->get('security.token_storage')->setToken(null);
             $request->getSession()->invalidate();
@@ -54,12 +59,15 @@ class AdminToolbarController extends AbstractController
                 case 'block':
                     $this->addFlash('error', 'You have been blocked.');
                     break;
+
                 case 'delete':
                     $this->addFlash('error', 'Your account has been deleted.');
                     break;
+
                 case 'remove':
                     $this->addFlash('error', 'Your account has been removed.');
                     break;
+
                 case 'unblock':
                     $this->addFlash('success', 'Your account has been reactivated.');
                     return $this->redirectToRoute('app_login');
@@ -82,3 +90,4 @@ class AdminToolbarController extends AbstractController
         ]);
     }
 }
+
