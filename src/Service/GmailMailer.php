@@ -17,7 +17,8 @@ class GmailMailer
         $client->setAuthConfig(__DIR__ . '/../../credentials.json');
         $client->setAccessType('offline');
 
-        $tokenBase64 = dd(getenv('GMAIL_TOKEN_BASE64') ?: 'getenv not found');
+        $tokenBase64 = dd(json_decode(base64_decode($tokenBase64), true));
+
         if (!$tokenBase64) {
             throw new \RuntimeException("GMAIL_TOKEN_BASE64 is missing");
         }
