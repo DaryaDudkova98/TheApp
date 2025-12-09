@@ -45,10 +45,8 @@ class AdminDashboardController extends AbstractController
 
         $statusValue = $dbUser->getStatus();
 
-        if ($statusValue !== 'active') {
-            if ($statusValue === 'unverified') {
-                $this->addFlash('warning', 'Your account has not been verified. Access to the panel is denied.');
-            } elseif ($statusValue === 'blocked') {
+        if (!in_array($statusValue, ['active', 'unverified'])) {
+            if ($statusValue === 'blocked') {
                 $this->addFlash('error', 'Access denied. Your account has been blocked.');
             } elseif ($statusValue === 'deleted') {
                 $this->addFlash('error', 'Access denied. Your account has been deleted.');
