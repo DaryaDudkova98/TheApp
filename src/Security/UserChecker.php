@@ -23,9 +23,6 @@ class UserChecker implements UserCheckerInterface
             throw new CustomUserMessageAccountStatusException('Your account has been deleted.');
         }
 
-        if ($user->getStatus() === 'unverified') {
-            throw new CustomUserMessageAccountStatusException('Your account has not been verified.');
-        }
     }
 
     public function checkPostAuth(UserInterface $user): void {}
